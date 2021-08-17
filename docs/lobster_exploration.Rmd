@@ -1,0 +1,79 @@
+---
+title: "lobster_exploration"
+author: "Charles Hendrickson"
+date: "8/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(janitor)
+```
+
+## 
+```{r}
+lobsters <- read_csv(here("data","Lobster_Abundance_All_Years_20210412.csv"), na = c("-99999", "")) %>% 
+  clean_names() %>% 
+  uncount(count)
+```
+
+# Create a summary table that finds the total counts (see: n()), and mean carapace lengths of lobsters observed in the dataset by site and year.
+```{r}
+summary_table <- lobsters %>%
+  group_by(site, year) %>% 
+  summarize(mean_carapace_length <- mean(size_mm, na.rm = TRUE),
+            total_counts = n())
+
+summary_table
+
+# Create a ggplot graph of the number of total lobsters observed (y-axis) by year (x-axis) in the study, grouped (either aesthetically or by faceting) by site
+
+ggplot(data = summary_table, aes(x = year, y = total_counts, color = site))+
+  geom_point()+
+  geom_line()+
+  ggtitle("Total lobster count by year")+
+  xlab("Year")+
+  ylab("Total Count")
+
+```
+# The legal lobster size (carapace length) in California is 79.76 mm.
+
+Create a subset that only contains lobster data from 2020 (note: this should be from the original data you read in, not the summary table you created above)
+
+```{r}
+lobster_data_2020 <- lobsters %>% 
+  filter(year == 2020)
+
+lobster_data_2020
+```
+
+
+# Write code (you can decide how to do this - there are a number of ways) to find the counts of lobsters observed at each site (only using site as the grouping factor) that are above and below the legal limit. Hint: You may want to add a new column legal that contains “yes” or “no” based on the size of the observed lobster (see dplyr::case_when() for a really nice way to do this), then use group_by() %>% summarize(n()) or dplyr::count() to get counts by group within variables
+
+```{r}
+lobster_count <- lobsters %>% 
+  mutate(legal_size = case_when(
+    size_mm >= 79.76 ~ "yes",
+    size_mm <  79.76 ~ "no")) %>%
+  count(site) %>% 
+  summarize(n())
+
+lobster_count
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
